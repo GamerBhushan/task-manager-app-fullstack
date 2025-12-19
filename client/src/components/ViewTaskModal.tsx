@@ -1,6 +1,6 @@
 import { ModalWrapper } from './ui/ModalWrapper';
 import type { Task } from '../types/task';
-import { LuCalendar, LuUser, LuClock, LuFlag } from 'react-icons/lu';
+import { LuCalendar, LuUser, LuClock,  } from 'react-icons/lu';
 import { format } from 'date-fns';
 import { getPriorityColor, getStatusColor } from '../types/task';
 
