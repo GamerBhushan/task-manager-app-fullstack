@@ -12,22 +12,40 @@ const SocketContext = createContext<SocketContextType | undefined>(undefined);
 export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const { user } = useAuth(); // Get current user state
+  const { user } = useAuth(); 
 
   useEffect(() => {
     // 1. Only connect if user is logged in
     if (user) {
       const token = localStorage.getItem('token');
       
-      const socketInstance = io('http://localhost:5000', {
-        auth: { token }, // Send token if needed for backend verify
-        transports: ['websocket'], // Force WebSocket for better performance
+      // ---------------------------------------------------------
+      // FIX: Dynamically determine the URL
+      // ---------------------------------------------------------
+      
+      // A. Get the API URL from the environment (or default to localhost for dev)
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+      // B. Strip the "/api" suffix because Socket.io connects to the ROOT domain
+      // Example: "https://my-app.com/api" becomes "https://my-app.com"
+      const socketUrl = apiUrl.replace('/api', '');
+
+      console.log("🔌 Connecting Socket to:", socketUrl);
+
+      const socketInstance = io(socketUrl, {
+        auth: { token }, 
+        transports: ['websocket', 'polling'], // Allow polling fallback for better stability
         reconnection: true,
+        withCredentials: true, // Important for CORS
       });
 
       socketInstance.on('connect', () => {
         console.log("🟢 Socket Connected:", socketInstance.id);
         setIsConnected(true);
+      });
+
+      socketInstance.on('connect_error', (err) => {
+        console.error("🔴 Socket Connection Error:", err.message);
       });
 
       socketInstance.on('disconnect', () => {
@@ -48,7 +66,7 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         setIsConnected(false);
       }
     }
-  }, [user]); // Re-run when User changes
+  }, [user]); 
 
   return (
     <SocketContext.Provider value={{ socket, isConnected }}>
