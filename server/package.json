@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch --env-file=.env src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js",
-    "test": "set NODE_OPTIONS=--experimental-vm-modules && jest"
-  },
+  "dev": "tsx watch --env-file=.env src/server.ts",
+  
+  "build": "npx prisma generate && tsc", 
+  "start": "node dist/server.js",
+  
+  "deploy": "npx prisma migrate deploy && npm start"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",

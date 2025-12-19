@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import api from '../api/client';
-// FIX 1: Import useQueryClient
 import { useQueryClient } from '@tanstack/react-query'; 
 
+// You can keep this local definition or import it if you have a shared types file
 interface User {
   id: string;
   name: string;
@@ -15,6 +15,7 @@ interface AuthContextType {
   login: (data: any) => Promise<void>;
   register: (data: any) => Promise<void>;
   logout: () => void;
+  updateUser: (user: User) => void; // <--- FIX 1: Added this property
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,7 +24,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   
-  // FIX 2: Get access to the cache
   const queryClient = useQueryClient(); 
 
   useEffect(() => {
@@ -65,14 +65,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('token');
     delete api.defaults.headers.common['Authorization'];
     setUser(null);
-    
-    // FIX 3: WIPE ALL DATA immediately upon logout
-    // This ensures User B never sees User A's data
     queryClient.clear(); 
   };
 
+  // FIX 2: Implement the function
+  const updateUser = (userData: User) => {
+    setUser(userData);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isLoading, 
+      login, 
+      register, 
+      logout,
+      updateUser // <--- FIX 3: Expose it to the app
+    }}>
       {children}
     </AuthContext.Provider>
   );

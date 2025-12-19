@@ -1,64 +1,35 @@
-
 {
-  // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     // File Layout
-    // "rootDir": "./src",
-    // "outDir": "./dist",
+    "rootDir": "./src",
+    "outDir": "./dist",
+    
     // Environment Settings
-    // See also https://aka.ms/tsconfig/module
     "module": "nodenext",
     "target": "esnext",
-    "types": ["node", "jest"],
-    // For nodejs:
-    // "lib": ["esnext"],
-    // "types": ["node"],
-    // and npm install -D @types/node
-    // Other Outputs
-    "sourceMap": true,
-    "declaration": true,
-    "declarationMap": true,
-    // Stricter Typechecking Options
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
-    // Style Options
-    // "noImplicitReturns": true,
-    // "noImplicitOverride": true,
-    // "noUnusedLocals": true,
-    // "noUnusedParameters": true,
-    // "noFallthroughCasesInSwitch": true,
-    // "noPropertyAccessFromIndexSignature": true,
-    // Recommended Options
+    "moduleResolution": "nodenext",
+    
+    // Stricter Typechecking
     "strict": true,
-    "jsx": "react-jsx",
-    "verbatimModuleSyntax": true,
-    "isolatedModules": true,
-    "noUncheckedSideEffectImports": true,
-    "moduleDetection": "force",
+    "noUncheckedIndexedAccess": true,
+    
+    // Interop
+    "esModuleInterop": true,
     "skipLibCheck": true,
-  }
+    "forceConsistentCasingInFileNames": true
+  },
+  
+  // FIX: Explicitly tell TS to only look in src
+  "include": [
+    "src/**/*"
+  ],
+  
+  // FIX: Explicitly ignore config files and node_modules
+  "exclude": [
+    "node_modules",
+    "dist",
+    "jest.config.ts",
+    "prisma.config.ts",
+    "**/*.test.ts"
+  ]
 }
-
-
-
-/* server/tsconfig.json */
-// {
-//   "compilerOptions": {
-//     "target": "es2016",
-//     "module": "commonjs",
-//     "rootDir": "./src",
-//     "outDir": "./dist",
-//     "strict": true,
-//     "esModuleInterop": true,
-//     "skipLibCheck": true,
-//     "forceConsistentCasingInFileNames": true
-//   },
-//   "include": [
-//     "src/**/*"
-//   ],
-//   "exclude": [
-//     "node_modules",
-//     "**/*.test.ts"
-//   ]
-// }
-

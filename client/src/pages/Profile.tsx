@@ -1,30 +1,37 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { DashboardLayout } from '../layouts/DashboardLayout';
-import { updateProfile, deleteAccount, updatePassword } from '../api/auth'; // Import updatePassword
-import Button from '../components/Button';
-import Input from '../components/Input';
+import { updateProfile, deleteAccount, updatePassword } from '../api/auth';
 import { toast } from 'react-hot-toast';
 import { LuUser, LuShieldAlert, LuSave, LuLock } from 'react-icons/lu';
+
+// 1. Import your custom Dialog & Button
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { Button } from '../components/ui/Button'; 
+// Note: Ensure you have a generic Input component or use standard HTML input with Tailwind classes. 
+// If you don't have '../components/Input', replace with standard <input> below.
+import Input from '../components/Input'; 
 
 export default function Profile() {
   const { user, updateUser, logout } = useAuth();
   
-  // Profile Form State
+  // States
+  const [loading, setLoading] = useState(false);
+  const [passLoading, setPassLoading] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false); // <--- State for Dialog
+
+  // Form Data
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
     email: user?.email || '',
   });
   
-  // Password Form State
   const [passData, setPassData] = useState({
     oldPassword: '',
     newPassword: ''
   });
 
-  const [loading, setLoading] = useState(false);
-  const [passLoading, setPassLoading] = useState(false);
-
+  // Handlers
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -45,7 +52,7 @@ export default function Profile() {
     try {
       await updatePassword(passData);
       toast.success('Password changed successfully');
-      setPassData({ oldPassword: '', newPassword: '' }); // Clear form
+      setPassData({ oldPassword: '', newPassword: '' });
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to update password');
     } finally {
@@ -53,15 +60,16 @@ export default function Profile() {
     }
   };
 
-  const handleDelete = async () => {
-    if (confirm('WARNING: This will permanently delete your account. Are you sure?')) {
-      try {
-        await deleteAccount();
-        await logout();
-        toast.success('Account deleted');
-      } catch (error) {
-        toast.error('Failed to delete account');
-      }
+  // 2. The Actual Delete Logic
+  const performDeleteAccount = async () => {
+    try {
+      await deleteAccount();
+      await logout(); // Logout immediately after delete
+      toast.success('Account deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete account');
+    } finally {
+      setIsDeleteOpen(false);
     }
   };
 
@@ -73,7 +81,7 @@ export default function Profile() {
           <p className="text-slate-500 text-sm">Manage your profile and security</p>
         </div>
 
-        {/* 1. Profile Info Card */}
+        {/* --- Profile Info Card --- */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex items-center gap-3">
             <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
@@ -86,13 +94,13 @@ export default function Profile() {
             <Input
               label="Full Name"
               value={profileData.name}
-              onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+              onChange={(e: any) => setProfileData({ ...profileData, name: e.target.value })}
             />
             <Input
               label="Email Address"
               type="email"
               value={profileData.email}
-              onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
+              onChange={(e: any) => setProfileData({ ...profileData, email: e.target.value })}
             />
             <div className="pt-2 flex justify-end">
               <Button type="submit" isLoading={loading} className="flex items-center gap-2">
@@ -103,7 +111,7 @@ export default function Profile() {
           </form>
         </div>
 
-        {/* 2. Security Card (Password) */}
+        {/* --- Security Card --- */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex items-center gap-3">
             <div className="p-2 bg-amber-50 rounded-lg text-amber-600">
@@ -118,7 +126,7 @@ export default function Profile() {
               type="password"
               placeholder="••••••••"
               value={passData.oldPassword}
-              onChange={(e) => setPassData({ ...passData, oldPassword: e.target.value })}
+              onChange={(e: any) => setPassData({ ...passData, oldPassword: e.target.value })}
               required
             />
             <Input
@@ -126,7 +134,7 @@ export default function Profile() {
               type="password"
               placeholder="••••••••"
               value={passData.newPassword}
-              onChange={(e) => setPassData({ ...passData, newPassword: e.target.value })}
+              onChange={(e: any) => setPassData({ ...passData, newPassword: e.target.value })}
               required
             />
             <div className="pt-2 flex justify-end">
@@ -137,7 +145,7 @@ export default function Profile() {
           </form>
         </div>
 
-        {/* 3. Danger Zone */}
+        {/* --- Danger Zone --- */}
         <div className="bg-white rounded-xl border border-red-100 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-red-50 bg-red-50/30 flex items-center gap-3">
             <div className="p-2 bg-red-100 rounded-lg text-red-600">
@@ -150,11 +158,24 @@ export default function Profile() {
             <p className="text-sm text-slate-600">
               Permanently delete your account and all data.
             </p>
-            <Button variant="danger" onClick={handleDelete}>
+            {/* 3. Open Dialog on Click */}
+            <Button variant="danger" type="button" onClick={() => setIsDeleteOpen(true)}>
               Delete Account
             </Button>
           </div>
         </div>
+
+        {/* 4. The Custom Confirmation Dialog */}
+        <ConfirmDialog 
+          isOpen={isDeleteOpen}
+          onClose={() => setIsDeleteOpen(false)}
+          onConfirm={performDeleteAccount}
+          title="Delete Account?"
+          message="Are you sure you want to delete your account? This action cannot be undone and you will lose all your tasks."
+          confirmText="Yes, Delete My Account"
+          isDestructive={true}
+        />
+
       </div>
     </DashboardLayout>
   );
